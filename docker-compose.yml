@@ -13,3 +13,4 @@ services:
       MQTT_USER: emqx
       MQTT_PASS: public
       MQTT_TOPIC: topic
+      HEARTBEAT_INTERVAL: 5s

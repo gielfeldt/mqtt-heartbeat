@@ -7,4 +7,5 @@
     -e MQTT_USER=myuser
     -e MQTT_PASS=mypass
     -e MQTT_TOPIC=mytopic
+    -e HEARTBEAT_INTERVAL=5s
 ```

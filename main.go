@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -16,7 +17,7 @@ var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
 
 var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err error) {
 	fmt.Printf("Connect lost: %v", err)
-	os.Exit(1)
+	panic(err)
 }
 
 func main() {
@@ -35,6 +36,7 @@ func main() {
 	user := os.Getenv("MQTT_USER")
 	pass := os.Getenv("MQTT_PASS")
 	topic := os.Getenv("MQTT_TOPIC")
+	interval, _ := time.ParseDuration(os.Getenv("HEARTBEAT_INTERVAL"))
 
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%s", host, port))
@@ -48,13 +50,28 @@ func main() {
 		panic(token.Error())
 	}
 
+	defer func() {
+		token := client.Publish(topic+"/state", 1, true, "offline")
+		token.Wait()
+		fmt.Println("Offline")
+		client.Disconnect(2000)
+		fmt.Println("Disconnected")
+	}()
+
 	token := client.Publish(topic+"/state", 1, true, "online")
 	token.Wait()
 	fmt.Println("Online")
 
+	ticker := time.NewTicker(interval)
+	go func() {
+		for range ticker.C {
+			token := client.Publish(topic+"/state", 1, true, "online")
+			token.Wait()
+			fmt.Println("Heartbeat")
+		}
+	}()
+
 	<-done
-	token = client.Publish(topic+"/state", 1, true, "offline")
-	token.Wait()
-	fmt.Println("Offline")
-	client.Disconnect(250)
+	ticker.Stop()
+
 }
