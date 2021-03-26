@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM} golang:1.14.3-alpine AS base
+FROM golang:1.14.3-alpine AS base
 WORKDIR /src
 ENV CGO_ENABLED=0
 
