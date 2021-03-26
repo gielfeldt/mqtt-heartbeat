@@ -1,0 +1,15 @@
+version: "3.5"
+
+services:
+  mqtt-heartbeat:
+    build:
+      context: ./
+      target: dev
+    volumes:
+      - ./:/src
+    environment:
+      MQTT_HOST: broker.emqx.io
+      MQTT_PORT: 1883
+      MQTT_USER: emqx
+      MQTT_PASS: public
+      MQTT_TOPIC: topic
